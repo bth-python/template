@@ -1,0 +1,124 @@
+#!/bin/bash
+#
+# Git pre-push hook to validate kmom code before pushing tags
+#
+# This hook validates tags with format vXX.Y where XX is the kmom number. Y is incremented for each release of the same kmom (e.g. v01.0, v01.1, v02.0, etc.).
+# It runs tests and linting for the corresponding kmom and blocks the push if validation fails.
+# When pushing multiple tags, only the latest tag is validated.
+#
+# To install: This hook is automatically installed by 'task setup' or can be updated with 'task update-hooks'
+
+# Collect all tags being pushed
+declare -a tags_to_push
+
+while read local_ref local_sha remote_ref remote_sha; do
+  # Check if this is a tag push
+  if [[ "$remote_ref" =~ refs/tags/ ]]; then
+    tag_name="${remote_ref#refs/tags/}"
+
+    # Only collect tags that match our format
+    if [[ "$tag_name" =~ ^v([0-9]{2})\.([0-9]+)(\.([0-9]+))?$ ]]; then
+      tags_to_push+=("$tag_name")
+    else
+      echo "❌ Error: Tag '$tag_name' does not match expected format vXX.Y"
+      echo "   Expected format: v01.0, v02.1, etc."
+      echo "   Tag must follow the format where XX is the kmom number (01-99)"
+      exit 1
+    fi
+  fi
+done
+
+# If no tags to validate, exit successfully
+if [ ${#tags_to_push[@]} -eq 0 ]; then
+  exit 0
+fi
+
+# Find the latest tag (sort by version)
+latest_tag=$(printf '%s\n' "${tags_to_push[@]}" | sort -V | tail -n 1)
+
+echo "=================================================="
+# echo "Found ${#tags_to_push[@]} tag(s) to push: ${tags_to_push[*]}"
+echo "Validating latest tag: $latest_tag"
+echo "=================================================="
+echo ""
+
+# Extract kmom from latest tag
+if [[ "$latest_tag" =~ ^v([0-9]{2})\.([0-9]+)(\.([0-9]+))?$ ]]; then
+  kmom_num="${BASH_REMATCH[1]}"
+  kmom="kmom${kmom_num}"
+  
+  # Check if tests directory exists
+  if [ ! -d "tests/$kmom" ]; then
+    echo "❌ Error: tests/$kmom directory not found!"
+    echo "   Cannot validate tag $latest_tag"
+    exit 1
+  fi
+  
+  # Track validation results
+  tests_passed=true
+  ruff_passed=true
+  
+  # Run tests
+  echo "Running tests for $kmom..."
+  if ! uv run tester tests/$kmom/; then
+    echo ""
+    echo "❌ Tests failed for $kmom"
+    tests_passed=false
+  else
+    echo "✅ All tests passed"
+  fi
+  echo ""
+  
+  # Run ruff check
+  echo "Running Ruff linting for $kmom..."
+  if ! uv run ruff check src/$kmom/; then
+    echo ""
+    echo "❌ Ruff linting failed for $kmom"
+    ruff_passed=false
+  else
+    echo "✅ Ruff checks passed"
+  fi
+  echo ""
+  
+  # Check if any validation failed
+  if [ "$tests_passed" = false ] || [ "$ruff_passed" = false ]; then
+    echo "=================================================="
+    echo "❌ Validation failed for $latest_tag"
+    echo "=================================================="
+    echo ""
+    echo "Summary:"
+    if [ "$tests_passed" = false ]; then
+      echo "  ❌ Tests failed. Scroll up to see details."
+    else
+      echo "  ✅ Tests passed"
+    fi
+    if [ "$ruff_passed" = false ]; then
+      echo "  ❌ Ruff linting failed. Scroll up to see details."
+    else
+      echo "  ✅ Ruff linting passed"
+    fi
+    echo ""
+    
+    # Delete the tag
+    echo "🗑️  Deleting tag $latest_tag..."
+    git tag -d "$latest_tag"
+    echo ""
+    
+    echo "To fix this:"
+    echo "  1. Fix the errors in your code"
+    echo "  2. Test locally: 'uv run tester tests/$kmom/'"
+    echo "  3. Check linting: 'uv run ruff check src/$kmom/'"
+    echo "  4. Commit your fixes: 'git add .', 'git commit -m \"Fix validation errors\"' and 'git push'"
+    echo "  5. Recreate the tag: 'git tag -a $latest_tag -m \"Release $kmom\"'"
+    echo "  6. Push tags again: 'git push --tags'"
+    exit 1
+  fi
+  
+  echo "=================================================="
+  echo "✅ Validation successful for $latest_tag"
+  echo "=================================================="
+  echo ""
+fi
+
+# If we reach here, all validations passed
+exit 0

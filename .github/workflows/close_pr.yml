@@ -1,0 +1,26 @@
+name: Pull Request was closed on bth/submit/*
+
+on:
+  pull_request:
+    types: [closed] # skapar PR, gör push, stänger manuellt
+
+jobs:
+  debug:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Debug context
+        run: |
+          echo "github.ref: ${{ github.ref }}"
+          echo "github.head_ref: ${{ github.head_ref }}"
+          echo "github.base_ref: ${{ github.base_ref }}"
+          echo "github.event_name: ${{ github.event_name }}"
+          echo "event.action: ${{ github.event.action || '' }}"
+          echo "review_state: ${{ github.event.review.state || '' }}"
+
+  call-decider:
+    if: github.event.pull_request.merged == false
+    uses: bth-algo/utils/.github/workflows/on_close_pr.yml@main
+    with:
+      course_id: ${{ vars.COURSE_ID }}
+      available_assignments: ${{ vars.ASSIGNMENTS }}
+    secrets: inherit

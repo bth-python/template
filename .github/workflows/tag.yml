@@ -1,0 +1,29 @@
+name: Run tests on tag
+
+on:
+  push:
+    tags:
+      - 'v0[1-9]\.[0-9]+' #(\.[0-9]+)?'
+      - 'v0[1-9]\.[0-9]+\.[0-9]+'
+      - 'v10\.[0-9]+'
+      - 'v10\.[0-9]+\.[0-9]+'
+
+
+jobs:
+  debug:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Debug context
+        run: |
+          echo "github.ref: ${{ github.ref }}"
+          echo "github.head_ref: ${{ github.head_ref }}"
+          echo "github.base_ref: ${{ github.base_ref }}"
+          echo "github.event_name: ${{ github.event_name }}"
+          echo "event.action: ${{ github.event.action || '' }}"
+          echo "review_state: ${{ github.event.review.state || '' }}"
+
+  call-on-tag:
+    uses: bth-algo/utils/.github/workflows/on_tag.yml@main
+    with:
+      kmom_paths: ${{ vars.KMOM_PATHS }}
+    secrets: inherit

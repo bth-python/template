@@ -1,0 +1,331 @@
+# https://taskfile.dev
+
+version: '3'
+
+silent: true
+
+vars:
+  COURSE_NAME: algo
+  ORG_NAME: bth-{{ .COURSE_NAME }}
+  ARTIFACT_REPO_FILES: https://raw.githubusercontent.com/{{.ORG_NAME}}/template/refs/heads/main/
+  ARTIFACT_TMP_FILES: /tmp/tmp-artifacts
+  ARTIFACT_REPO: https://github.com/{{.ORG_NAME}}/template
+
+tasks:
+
+  create-src-dirs:
+    desc: "Creates the src directory structure if they do not exist"
+    cmds:
+      - mkdir -p src/kmom01/{convert,lab_01,practice,split_bill} src/kmom02/{marvin1,practice,practice_validation} src/kmom03/{marvin2,practice,practice_validation} src/kmom04/{marvin3,practice,practice_validation,lab_04} src/kmom05/{emissions,practice,practice_validation}
+      - echo "Source directories created successfully. PS empty directories are not shown with 'git status'."
+      - tree -d src
+
+  download-artifacts:
+    desc: "Downloads the artifacts repo to /tmp/tmp-artifacts"
+    internal: true
+    cmds:
+      - task: clear-artifacts
+      - git clone --quiet {{.ARTIFACT_REPO}}.git {{.ARTIFACT_TMP_FILES}}
+
+
+
+  clear-artifacts:
+    desc: "Removes /tmp/tmp-artifacts, used to clear the artifacts repo"
+    internal: true
+    cmds:
+      - rm -rf {{.ARTIFACT_TMP_FILES}}
+
+
+
+  download-tests:
+    desc: "Replaces files in tests/ with files from the artifact repository, {{.ARTIFACT_REPO}}"
+    cmds:
+      - task: download-artifacts
+      - cp -a {{.ARTIFACT_TMP_FILES}}/tests/. tests
+      - task: clear-artifacts
+      - echo "Tests downloaded successfully."
+
+
+
+  download-ruff-config:
+    desc: "Downloads the ruff configuration file from the artifact repository"
+    cmds:
+      - curl -s -L -o ruff.toml {{.ARTIFACT_REPO_FILES}}/ruff.toml
+      - echo "Ruff configuration downloaded successfully."
+
+
+
+  download-taskfile:
+    desc: "Downloads the Taskfile from the artifact repository"
+    cmds:
+      - curl -s -L -o Taskfile.yml {{.ARTIFACT_REPO_FILES}}/Taskfile.yml
+      - echo "Taskfile downloaded successfully."
+
+
+
+  download-lab:
+    desc: "Download a lab. Run with 'uv run task download-lab -- lab_XX', replace XX with the lab number."
+    dir: "{{.USER_WORKING_DIR}}"
+    preconditions:
+      - sh: '[[ "$PWD" == */{{.CLI_ARGS}} ]]'
+        msg: "You must stand in a directory called 'lab_XX' to run this task. EX. 'lab_01'."
+    prompt: "This will overwrite 'answer.py' if you already have it downloaded. If you have started on the lab and want to save your work, rename your 'answer.py' to something else before continuing.\n Do you want to continue?"
+    vars:
+      LAB_PATH:
+        sh: echo "$PWD" | awk -F'/src/' '{print $2}'
+    cmds:
+      - task: download-artifacts
+      - cp -a {{.ARTIFACT_TMP_FILES}}/src/{{.LAB_PATH}}/. .
+      - task: clear-artifacts
+      - echo "{{.CLI_ARGS}} downloaded successfully. You can use the command 'ls' to se what files have been downloaded."
+
+
+
+  download-workflow:
+    desc: "Download workflows file that checks code at pull request."
+    cmds:
+      - task: download-artifacts
+      - mkdir -p .github/workflows
+      - cp -a {{.ARTIFACT_TMP_FILES}}/.github/workflows/. .github/workflows/
+      - echo "Workflow file downloaded successfully."
+
+
+  download-extensions:
+    desc: "Download file with recommended extensions."
+    cmds:
+      - mkdir -p .vscode
+      - curl -s -L -o .vscode/extensions.json {{.ARTIFACT_REPO_FILES}}/.vscode/extensions.json
+      - curl -s -L -o .vscode/settings.json {{.ARTIFACT_REPO_FILES}}/.vscode/settings.json
+      - echo "Recommended extensions successfully."
+
+
+
+  download-hooks:
+    desc: "Download git hook files from the template repository and install them"
+    cmds:
+      - task: download-artifacts
+      - mkdir -p .hooks
+      - mkdir -p .git/hooks
+      - cp -a {{.ARTIFACT_TMP_FILES}}/.hooks/. .hooks/
+      - cp -a {{.ARTIFACT_TMP_FILES}}/.hooks/. .git/hooks/
+      - chmod +x .git/hooks/*
+      - task: clear-artifacts
+      - echo "Git hooks downloaded and installed successfully."
+
+
+
+  check-repo-setup:
+    desc: "Checks that repo contain all needed files and is setup correctly."
+    cmds:
+      - |
+        ERRORS=0
+
+        # ── Git remote: extract org and repo name ──────────────────────────────
+        REMOTE_URL=$(git remote get-url origin 2>/dev/null)
+        if [ -z "$REMOTE_URL" ]; then
+          echo "❌ Error: no git remote 'origin' found."
+          exit 1
+        fi
+        REPO_FULL=$(echo "$REMOTE_URL" | sed -E 's|.*github\.com[:/]||;s|\.git$||')
+        REPO_ORG=$(echo "$REPO_FULL" | cut -d'/' -f1)
+        REPO_NAME=$(echo "$REPO_FULL" | cut -d'/' -f2)
+
+        # ── Check: repo owned by {{.ORG_NAME}} ──────────────────────────────────────
+        if [ "$REPO_ORG" = "{{.ORG_NAME}}" ]; then
+          echo "✅ Repository is owned by organisation '{{.ORG_NAME}}'"
+        else
+          echo "❌ Error: repository is not owned by '{{.ORG_NAME}}' (found: '$REPO_ORG')."
+          ERRORS=$((ERRORS + 1))
+        fi
+
+        # ── Check: repo name format ────────────────────────────────────────────
+        if echo "$REPO_NAME" | grep -qE '^{{ .COURSE_NAME }}-[a-z]{4}[0-9]{2}$' || \
+          echo "$REPO_NAME" | grep -qE '^{{ .COURSE_NAME }}-[a-z]{3}stud$'; then
+          echo "✅ Repository name '$REPO_NAME' matches expected format."
+        else
+          echo "❌ Error: repository name '$REPO_NAME' does not match 'XXXXNN'."
+          ERRORS=$((ERRORS + 1))
+        fi
+
+        # ── Check: currently on branch main ───────────────────────────────────
+        if [ "${GITHUB_ACTIONS}" = "true" ]; then
+          echo "⏭️  Skipping branch check (running in GitHub Actions)."
+        else
+          CURRENT_BRANCH=$(git branch --show-current)
+          if [ "$CURRENT_BRANCH" = "main" ]; then
+            echo "✅ Currently on branch 'main'."
+          else
+            echo "❌ Error: not on branch 'main' (currently on '$CURRENT_BRANCH')."
+            echo "   Fix: git checkout main"
+            ERRORS=$((ERRORS + 1))
+          fi
+        fi
+
+        # ── Check: required branches exist (local or remote) ──────────────────
+        for BRANCH in "bth/submit/kmom03" "bth/submit/test-gitconfig"; do
+          LOCAL_BRANCH=$(git show-ref --verify --quiet "refs/heads/$BRANCH" && echo "yes" || echo "no")
+          REMOTE_BRANCH=$(git ls-remote --heads origin "$BRANCH" 2>/dev/null | grep -c "$BRANCH" || true)
+          if [ "$LOCAL_BRANCH" = "yes" ] && [ "$REMOTE_BRANCH" -gt 0 ]; then
+            echo "✅ Branch '$BRANCH' found locally and on remote."
+          elif [ "$LOCAL_BRANCH" = "yes" ]; then
+            echo "❌ Branch '$BRANCH' found locally (not yet pushed to remote)."
+            echo "   Fix: git push origin $BRANCH"
+            ERRORS=$((ERRORS + 1))
+          elif [ "$REMOTE_BRANCH" -gt 0 ]; then
+            echo "✅ Branch '$BRANCH' found on remote (not checked out locally)."
+          else
+            echo "❌ Error: branch '$BRANCH' not found locally or on remote."
+            echo "   Fix: git checkout -b $BRANCH && git push origin $BRANCH"
+            ERRORS=$((ERRORS + 1))
+          fi
+        done
+
+        # ── Check: required files ──────────────────────────────────────────────
+        [ -f .gitignore ] && echo "✅ .gitignore file found!" || { echo "❌ Error: .gitignore file not found!"; ERRORS=$((ERRORS + 1)); }
+        [ -d .github/workflows ] && echo "✅ .github/workflows directory found!" || { echo "❌ Error: .github/workflows directory not found!"; ERRORS=$((ERRORS + 1)); }
+        if [ "${GITHUB_ACTIONS}" = "true" ]; then
+          [ -d .hooks ] && echo "✅ .hooks directory found!" || { echo "❌ Error: .hooks directory not found!"; ERRORS=$((ERRORS + 1)); }
+        else
+          [ -f .git/hooks/pre-push ] && echo "✅ .git/hooks/pre-push file found!" || { echo "❌ Error: .git/hooks/pre-push file not found!"; ERRORS=$((ERRORS + 1)); }
+        fi
+        [ -d tests ] && echo "✅ tests directory found!" || { echo "❌ Error: tests directory not found!"; ERRORS=$((ERRORS + 1)); }
+        [ -f .editorconfig ] && echo "✅ .editorconfig file found!" || { echo "❌ Error: .editorconfig file not found!"; ERRORS=$((ERRORS + 1)); }
+        [ -f .python-version ] && echo "✅ .python-version file found!" || { echo "❌ Error: .python-version file not found!"; ERRORS=$((ERRORS + 1)); }
+        [ -f pyproject.toml ] && echo "✅ pyproject.toml file found!" || { echo "❌ Error: pyproject.toml file not found!"; ERRORS=$((ERRORS + 1)); }
+        [ -f ruff.toml ] && echo "✅ ruff.toml file found!" || { echo "❌ Error: ruff.toml file not found!"; ERRORS=$((ERRORS + 1)); }
+        [ -f uv.lock ] && echo "✅ uv.lock file found!" || { echo "❌ Error: uv.lock file not found!"; ERRORS=$((ERRORS + 1)); }
+
+        # ── Summary ────────────────────────────────────────────────────────────
+        echo ""
+        if [ "$ERRORS" -eq 0 ]; then
+          echo "🎉 Repo setup looks correct!"
+        else
+          echo "🚫 $ERRORS check(s) failed. Fix the issues above and run again."
+          exit 1
+        fi
+
+
+
+  # ==========================================
+  # Submission Commands
+  # ==========================================
+
+  check-ready:
+    desc: "Check if assignment is ready for submission. Usage: 'task check-ready -- kmom01'"
+    cmds:
+      - |
+        # ── Validate argument ──────────────────────────────────────────────────
+        if [ -z "{{.CLI_ARGS}}" ]; then
+          echo "❌ No assignment specified."
+          echo ""
+          echo "  Usage:   task check-ready -- <kmom>"
+          echo "  Example: task check-ready -- kmom01"
+          echo ""
+          echo "  Valid assignments: kmom01 … kmom10"
+          exit 1
+        fi
+
+        KMOM="{{.CLI_ARGS}}"
+
+        if ! echo "$KMOM" | grep -qE '^kmom(0[1-9]|10)$'; then
+          echo "❌ Invalid assignment name: '$KMOM'"
+          echo ""
+          echo "  Expected format: kmom01 … kmom10"
+          exit 1
+        fi
+
+        KMOM_NUM=$(echo "$KMOM" | sed 's/kmom//')
+        ERRORS=0
+
+        echo "🔍 Checking readiness for $KMOM..."
+        echo ""
+
+        # ── Check: running from repo root ──────────────────────────────────────
+        GIT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
+        if [ -z "$GIT_ROOT" ]; then
+          echo "❌ Not inside a git repository."
+          echo "   Navigate to your repository root and try again."
+          exit 1
+        fi
+        if [ "$PWD" != "$GIT_ROOT" ]; then
+          echo "❌ You must run this command from the repository root."
+          echo "   Current directory : $PWD"
+          echo "   Repository root   : $GIT_ROOT"
+          echo "   Fix: cd \"$GIT_ROOT\""
+          exit 1
+        fi
+        echo "✅ Running from repository root."
+
+        # ── Check: no uncommitted changes ──────────────────────────────────────
+        if [ -n "$(git status --porcelain)" ]; then
+          echo "❌ You have uncommitted changes:"
+          git status --short
+          echo ""
+          echo "   Commit all changes before submitting:"
+          echo "   git add -A && git commit -m 'done with $KMOM'"
+          ERRORS=$((ERRORS + 1))
+        else
+          echo "✅ No uncommitted changes."
+        fi
+
+        # ── Check: submission tag v.YX.Z exists ────────────────────────────────
+        TAG=$(git tag --list "v.${KMOM_NUM}.*" | sort -V | tail -1)
+        if [ -z "$TAG" ]; then
+          echo "❌ No submission tag found matching 'v.${KMOM_NUM}.*'."
+          echo ""
+          echo "   Create and push a tag before submitting, e.g.:"
+          echo "   git tag v.${KMOM_NUM}.0"
+          echo "   git push origin v.${KMOM_NUM}.0"
+          ERRORS=$((ERRORS + 1))
+        else
+          echo "✅ Submission tag found: $TAG"
+        fi
+
+        # ── Ruff ───────────────────────────────────────────────────────────────
+        echo ""
+        echo "Running Ruff on src/$KMOM/ ..."
+        if uv run ruff check src/$KMOM/; then
+          echo "✅ Ruff: no issues."
+        else
+          echo ""
+          echo "❌ Ruff found code style issues in src/$KMOM/."
+          echo "   Rule reference       : https://docs.astral.sh/ruff/rules/"
+          ERRORS=$((ERRORS + 1))
+        fi
+
+        # ── Tests ──────────────────────────────────────────────────────────────
+        echo ""
+        echo "Running tests for $KMOM ..."
+        if uv run tester tests/$KMOM/; then
+          echo "✅ All tests passed."
+        else
+          echo ""
+          echo "❌ One or more tests failed for $KMOM."
+          ERRORS=$((ERRORS + 1))
+        fi
+
+        # ── Summary ────────────────────────────────────────────────────────────
+        echo ""
+        if [ "$ERRORS" -eq 0 ]; then
+          echo "🎉 $KMOM is ready for submission!"
+        else
+          echo "🚫 $KMOM is NOT ready — $ERRORS check(s) failed. Fix the issues above and run again."
+          exit 1
+        fi
+
+
+
+  setup:
+    desc: "Initial setup - run all configuration downloads"
+    cmds:
+      - echo "Running initial setup..."
+      - task: create-src-dirs
+      - task: download-tests
+      - task: download-ruff-config
+      - task: download-workflow
+      - task: download-extensions
+      - task: download-hooks
+      - task: check-repo-setup
+      - echo ""
+      - echo "✅ Setup complete!"
+      - echo ""

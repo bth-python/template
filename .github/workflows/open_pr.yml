@@ -21,7 +21,7 @@ jobs:
           echo "review_state: ${{ github.event.review.state || '' }}"
 
   call-on-open-pr:
-    uses: bth-algo/utils/.github/workflows/on_open_pr.yml@main
+    uses: bth-python/utils/.github/workflows/on_open_pr.yml@main
     with:
       course_id: ${{ vars.COURSE_ID }}
       available_assignments: ${{ vars.ASSIGNMENTS }}

@@ -23,7 +23,7 @@ jobs:
           echo "review_state: ${{ github.event.review.state || '' }}"
 
   call-on-tag:
-    uses: bth-algo/utils/.github/workflows/on_tag.yml@main
+    uses: bth-python/utils/.github/workflows/on_tag.yml@main
     with:
       kmom_paths: ${{ vars.KMOM_PATHS }}
     secrets: inherit

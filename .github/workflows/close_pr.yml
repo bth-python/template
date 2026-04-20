@@ -19,7 +19,7 @@ jobs:
 
   call-decider:
     if: github.event.pull_request.merged == false
-    uses: bth-algo/utils/.github/workflows/on_close_pr.yml@main
+    uses: bth-python/utils/.github/workflows/on_close_pr.yml@main
     with:
       course_id: ${{ vars.COURSE_ID }}
       available_assignments: ${{ vars.ASSIGNMENTS }}

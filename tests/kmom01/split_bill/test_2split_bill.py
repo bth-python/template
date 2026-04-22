@@ -23,7 +23,7 @@ class Test2SplitBill(ExamTestCase):
     The different asserts https://docs.python.org/3.6/library/unittest.html#test-cases
     """
 
-    link_to_assignment = "https://dbwebb-python-bth.github.io/website/laromaterial/övning/jobba-i-kursen/"
+    link_to_assignment = "https://python-bth.github.io/laromaterial/övning/jobba-i-kursen/"
     FILE = "split"
 
     def get_output_from_program(self, inp):

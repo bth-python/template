@@ -26,7 +26,7 @@ class Test2Convert(ExamTestCase):
     The different asserts https://docs.python.org/3.6/library/unittest.html#test-cases
     """
 
-    link_to_assignment = "https://dbwebb-python-bth.github.io/website/laromaterial/uppgift/convert/"
+    link_to_assignment = "https://python-bth.github.io/laromaterial/uppgift/convert/"
 
     def get_output_from_program(self, inp):
         """
@@ -37,43 +37,8 @@ class Test2Convert(ExamTestCase):
                 import_module(REPO_PATH, "convert")
                 return fake_out.getvalue()
 
-    @tags("speed", "s", "S")
-    def test_a_speed_example(self):
-        """
-        Testar kilometer till miles med heltal som input.
-        Använder följande som input:
-        {arguments}
-        Förväntar att följande finns med i utskrift:
-        {correct}
-        Fick följande:
-        {student}
-        """
-        self.norepr = True
-        self._multi_arguments = ["80", "S"]
-        output_from_program = self.get_output_from_program(self._multi_arguments)
-        self.assertIn("80.0 ", output_from_program)
-        self.assertIn("49.71 ", output_from_program)
-
-
-    @tags("speed", "s", "S")
-    def test_b_speed_example_negative(self):
-        """
-        Testar kilometer till miles med ett heltal 0 som input.
-        Använder följande som input:
-        {arguments}
-        Förväntar att följande finns med i utskrift:
-        {correct}
-        Fick följande:
-        {student}
-        """
-        self.norepr = True
-        self._multi_arguments = ["0", "S"]
-        output_from_program = self.get_output_from_program(self._multi_arguments)
-        self.assertIn("0.0 ", output_from_program)
-        self.assertIn("0.0 ", output_from_program)
-
-    @tags("price", "p", "P")
-    def test_c_price_example(self):
+    @tags("example")
+    def test_a_price_example(self):
         """
         Testar räkna ut pris efter rabatt med heltal som input.
         Använder följande som input:
@@ -84,15 +49,30 @@ class Test2Convert(ExamTestCase):
         {student}
         """
         self.norepr = True
-        self._multi_arguments = ["100", "P"]
-        output_from_program = self.get_output_from_program(self._multi_arguments)
-        self.assertIn("100.0 ", output_from_program)
+        self._argument = "100"
+        output_from_program = self.get_output_from_program([self._argument])
+        self.assertIn("100 ", output_from_program)
         self.assertIn("108.0 ", output_from_program)
 
+    @tags("positive")
+    def test_b_price_positive(self):
+        """
+        Testar räkna ut pris efter rabatt med heltal som input.
+        Använder följande som input:
+        {arguments}
+        Förväntar att följande finns med i utskrift:
+        {correct}
+        Fick följande:
+        {student}
+        """
+        self.norepr = True
+        self._argument = "123"
+        output_from_program = self.get_output_from_program([self._argument])
+        self.assertIn("123 ", output_from_program)
+        self.assertIn("135.6 ", output_from_program)
 
-
-    @tags("price", "p", "P")
-    def test_d_price_zero(self):
+    @tags("zero")
+    def test_c_price_zero(self):
         """
         Testar räkna ut pris efter rabatt med 0 som input.
         Använder följande som input:
@@ -103,10 +83,11 @@ class Test2Convert(ExamTestCase):
         {student}
         """
         self.norepr = True
-        self._multi_arguments = ["0", "P"]
-        output_from_program = self.get_output_from_program(self._multi_arguments)
-        self.assertIn("0.0 ", output_from_program)
+        self._argument = "0"
+        output_from_program = self.get_output_from_program([self._argument])
+        self.assertIn("0 ", output_from_program)
         self.assertIn("-12.0 ", output_from_program)
+
 
 if __name__ == "__main__":
     runner = TextTestRunner(resultclass=ExamTestResult, verbosity=2)

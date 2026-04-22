@@ -26,7 +26,6 @@ class Test3ConvertErrors(ExamTestCase):
     The different asserts https://docs.python.org/3.6/library/unittest.html#test-cases
     """
 
-    # link_to_assignment = "https://dbwebb-python-bth.github.io/website/laromaterial/uppgift/convert/"
 
 
     def get_output_from_program(self, inp):
@@ -35,11 +34,13 @@ class Test3ConvertErrors(ExamTestCase):
         """
         with patch("builtins.input", side_effect=inp):
             with patch("sys.stdout", new=StringIO()) as fake_out:
-                with self.assertRaises(SystemExit):
+                try:
                     import_module(REPO_PATH, "convert")
+                except SystemExit:
+                    pass
                 return fake_out.getvalue()
 
-    @tags("error", "value")
+    @tags("error")
     def test_a_value_not_int(self):
         """
         Testar skicka in sträng värde som input. Kollar att felhantering sker.
@@ -52,23 +53,7 @@ class Test3ConvertErrors(ExamTestCase):
         """
         self.norepr = True
         self._argument = "inte int"
-        output_from_program = self.get_output_from_program(self._argument)
-        self.assertIn("Invalid value", output_from_program)
-
-    @tags("error", "converter")
-    def test_b_invalid_converter(self):
-        """
-        Testar skicka in felaktigt värde för att välja vad som ska konverteras. Kollar att felhantering sker.
-        Använder följande som input:
-        {arguments}
-        Förväntar att följande finns med i utskrift:
-        {correct}
-        Fick följande:
-        {student}
-        """
-        self.norepr = True
-        self._argument = "X"
-        output_from_program = self.get_output_from_program(self._argument)
+        output_from_program = self.get_output_from_program([self._argument])
         self.assertIn("Invalid value", output_from_program)
 
 

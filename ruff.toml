@@ -1,5 +1,5 @@
 # rules https://docs.astral.sh/ruff/rules
-line-length = 100
+line-length = 120
 indent-width = 4
 
 
@@ -7,14 +7,38 @@ extend-exclude = ["practice", "tests"]
 
 
 [lint]
-
 unfixable = ["ALL"]
 
 ignore = [
     "PERF401", # use list comprehension instead of generator expression
     "PERF403", # use dict comprehension instead of generator expression
+    "PLR1711", # useless return.
+    "PLR1712", # swap-with-temporary-variable. This is a refactor rule that is not relevant for students.
+    "PLR1714", # repeated-equality-comparison
+    "PLR1716", # boolean-chained-comparison
     "PLR1722", # use sys.exit() instead of exit()
+    "PLR1730", # if-stmt-min-max. This is a refactor rule that is not relevant for students.
+    "PLR2004", # magic-value-comparison. This is a refactor rule that is not relevant for students.
+    "PLR5501", # collapsible-else-if. This is a refactor rule that is not relevant for students.
     "N806",    # non-lowercase-variable-in-function. Allow uppercase variable names in functions
+    "ISC002",  # Checks for implicitly concatenated strings that span multiple lines. Why not let students do it?
+    "ISC003",  # Checks for string literals that are explicitly concatenated (using the + operator).Why not let students do it?
+    "E302",    # forces 2 blank lines between functions
+    "E303",    # forces 2 blank lines between functions
+    "E502",    # Redundant backslash
+    "E711",    # none-comparison
+    "E712",    # true-false-comparison if foo instead och if foo == true
+    "W291",    # trailing whitespaces
+    "W293",    # Blank line contains whitespace
+    "W505",    # doc line too long
+    "PLC1802", # len({expression}) used as condition without comparison
+    "PLC1901", # {existing} can be simplified to {replacement} as an empty string is falsy
+    "PLW0603", # global-statement. Allow global statements in functions, as it is a common pattern for students to use global variables in functions.
+    "UP009",   # utf-8 encoding declaration
+    "UP012",   # unnecessary-encode-utf8
+    "UP015",   # redundant-open-modes
+    "UP030",   # format-literals
+    "UP032",   # f-strings-over-format
 ]
 
 
@@ -42,28 +66,17 @@ select = [
     "EXE005",  # shebang is not first line
     "Q003",    # avoid escaping quotes
     "Q004",    # unnecessary escaped quotes
-    "RET503",  # add explicit return in functions
+    "RET505",  # superfluous-else-return
+    "RET506",  # superfluous-else-raise
     "RET507",  # superfluous-else-continue
     "RET508",  # superfluous-else-break
     "SLF001",  # Private member accessed
-    "SIM113",  # Use enumerate() for index variable {index} in for loop
     "SIM114",  # Combine if branches using logical or operator
     "SIM115",  # Use a context manager for opening files
-    "SIM118",  # Use key {operator} dict instead of key {operator} dict.keys()
-    "SIM201",  # Use {left} != {right} instead of not {left} == {right}
-    "SIM202",  # Use {left} == {right} instead of not {left} != {right}
-    "SIM208",  # Use {expr} instead of not (not {expr})
     "SIM210",  # Remove unnecessary True if ... else False
-    "SIM211",  # Use not ... instead of False if ... else True
-    "SIM222",  # Use {expr} instead of {replaced}
-    "SIM223",  # Use {expr} instead of {replaced}
-    "SIM401",  # Use {contents} instead of an if block
     "SIM910",  # Include default value in dict.get() call
     "SIM911",  # Use dict.items() instead of zip()
     "PLC0206", # Extracting value from dictionary without calling .items()
-    # "PLC0415", # import should be at the top-level of a file
-    "PLC1802", # len({expression}) used as condition without comparison
-    # "PLC1901", # {existing} can be simplified to {replacement} as an empty string is falsy
     "PLC2401", # {kind} name {name} contains a non-ASCII character
     "PLC2403", # Module alias {name} contains a non-ASCII character
     # "PLC2701", # Private name import {name} from external module {module}
@@ -71,6 +84,8 @@ select = [
     "PLC3002", # Lambda expression called directly. Execute the expression inline instead.
     "TRY203",  # Remove exception handler; error is immediately re-raised
     "TRY301",  # Abstract raise to an inner function
+    "RUF001",  # Ambiguous unicode character string
+    "RUF059", # Checks for unused unpacked variabel
 ]
 
 
@@ -91,11 +106,14 @@ select = [
 
 [lint.pylint]
 max-branches = 10
+max-args = 7
 
 
 [lint.pydocstyle]
 convention = "google"
 
+[lint.pycodestyle]
+ignore-overlong-task-comments = true
 
 [format]
 indent-style = "space"

@@ -67,18 +67,30 @@ class Test4Scoreboard(ExamTestCase):
     def setUpClass(cls):
         os.chdir(REPO_PATH)
         os.makedirs("questions", exist_ok=True)
-        with open("questions/easy.txt", "w", encoding="utf-8") as f:
+        easy_path, hard_path = "questions/easy.txt", "questions/hard.txt"
+        cls._orig_easy = open(easy_path, encoding="utf-8").read() if os.path.exists(easy_path) else None
+        cls._orig_hard = open(hard_path, encoding="utf-8").read() if os.path.exists(hard_path) else None
+        with open(easy_path, "w", encoding="utf-8") as f:
             f.write(FIXTURE_CONTENT)
-        with open("questions/hard.txt", "w", encoding="utf-8") as f:
+        with open(hard_path, "w", encoding="utf-8") as f:
             f.write(FIXTURE_CONTENT)
 
     @classmethod
     def tearDownClass(cls):
-        for path in ["questions/easy.txt", "questions/hard.txt", "scores.txt"]:
-            try:
-                os.remove(path)
-            except FileNotFoundError:
-                pass
+        for attr, path in (("_orig_easy", "questions/easy.txt"), ("_orig_hard", "questions/hard.txt")):
+            orig = getattr(cls, attr)
+            if orig is not None:
+                with open(path, "w", encoding="utf-8") as f:
+                    f.write(orig)
+            else:
+                try:
+                    os.remove(path)
+                except FileNotFoundError:
+                    pass
+        try:
+            os.remove("scores.txt")
+        except FileNotFoundError:
+            pass
 
     def clear_scores(self):
         try:

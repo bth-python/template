@@ -26,7 +26,7 @@ class Test3Marvin3Main(ExamTestCase):
     The different asserts https://docs.python.org/3.6/library/unittest.html#test-cases
     """
 
-    link_to_assignment = "https://bth-python.github.io/website/laromaterial/uppgift/marvin3/"
+    link_to_assignment = "https://bth-python.github.io/laromaterial/uppgift/marvin3/"
 
     PICKUP = ["inv pick car", "", "inv pick house", ""]
 

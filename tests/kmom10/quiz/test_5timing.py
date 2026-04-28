@@ -67,15 +67,22 @@ class Test5Timing(ExamTestCase):
     def setUpClass(cls):
         os.chdir(REPO_PATH)
         os.makedirs("questions", exist_ok=True)
-        with open("questions/easy.txt", "w", encoding="utf-8") as f:
+        easy_path = "questions/easy.txt"
+        cls._orig_easy = open(easy_path, encoding="utf-8").read() if os.path.exists(easy_path) else None
+        with open(easy_path, "w", encoding="utf-8") as f:
             f.write(FIXTURE_CONTENT)
 
     @classmethod
     def tearDownClass(cls):
-        try:
-            os.remove("questions/easy.txt")
-        except FileNotFoundError:
-            pass
+        easy_path = "questions/easy.txt"
+        if cls._orig_easy is not None:
+            with open(easy_path, "w", encoding="utf-8") as f:
+                f.write(cls._orig_easy)
+        else:
+            try:
+                os.remove(easy_path)
+            except FileNotFoundError:
+                pass
         try:
             os.remove("scores.txt")
         except FileNotFoundError:

@@ -20,7 +20,7 @@ class Test1Structure(ExamTestCase):
     The different asserts https://docs.python.org/3.6/library/unittest.html#test-cases
     """
 
-    link_to_assignment = "https://bth-python.github.io/website/laromaterial/uppgift/analysera-text-och-ord"
+    link_to_assignment = "https://bth-python.github.io/laromaterial/uppgift/analysera-text-och-ord"
 
 
     @tags("struct")

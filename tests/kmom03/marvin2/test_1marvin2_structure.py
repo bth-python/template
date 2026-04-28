@@ -24,7 +24,7 @@ class Test4Marvin2Structure(ExamTestCase):
     The different asserts https://docs.python.org/3.6/library/unittest.html#test-cases
     """
 
-    link_to_assignment = "https://bth-python.github.io/website/laromaterial/uppgift/marvin2/"
+    link_to_assignment = "https://bth-python.github.io/laromaterial/uppgift/marvin2/"
 
     @tags("struct")
     def test_file_main_py_exist(self):

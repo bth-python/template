@@ -62,15 +62,22 @@ class Test3QuizRun(ExamTestCase):
     def setUpClass(cls):
         os.chdir(REPO_PATH)
         os.makedirs("questions", exist_ok=True)
-        with open("questions/easy.txt", "w", encoding="utf-8") as f:
+        easy_path = "questions/easy.txt"
+        cls._orig_easy = open(easy_path, encoding="utf-8").read() if os.path.exists(easy_path) else None
+        with open(easy_path, "w", encoding="utf-8") as f:
             f.write(FIXTURE_CONTENT)
 
     @classmethod
     def tearDownClass(cls):
-        try:
-            os.remove("questions/easy.txt")
-        except FileNotFoundError:
-            pass
+        easy_path = "questions/easy.txt"
+        if cls._orig_easy is not None:
+            with open(easy_path, "w", encoding="utf-8") as f:
+                f.write(cls._orig_easy)
+        else:
+            try:
+                os.remove(easy_path)
+            except FileNotFoundError:
+                pass
         try:
             os.remove("scores.txt")
         except FileNotFoundError:
@@ -315,7 +322,9 @@ class Test3QuizRun(ExamTestCase):
         """
         self.norepr = True
         # Write the same fixture as medium.txt
-        with open("questions/medium.txt", "w", encoding="utf-8") as f:
+        medium_path = "questions/medium.txt"
+        orig_medium = open(medium_path, encoding="utf-8").read() if os.path.exists(medium_path) else None
+        with open(medium_path, "w", encoding="utf-8") as f:
             f.write(FIXTURE_CONTENT)
         scores_path = os.path.join(REPO_PATH, "scores.txt")
         if os.path.exists(scores_path):
@@ -325,7 +334,11 @@ class Test3QuizRun(ExamTestCase):
         with open(scores_path, encoding="utf-8") as f:
             content = f.read()
         self.assertIn("medium", content)
-        os.remove("questions/medium.txt")
+        if orig_medium is not None:
+            with open(medium_path, "w", encoding="utf-8") as f:
+                f.write(orig_medium)
+        else:
+            os.remove(medium_path)
 
     @tags("quiz", "menu")
     def test_p_menu_3_hard(self):
@@ -341,7 +354,9 @@ class Test3QuizRun(ExamTestCase):
         """
         self.norepr = True
         # Write the same fixture as hard.txt
-        with open("questions/hard.txt", "w", encoding="utf-8") as f:
+        hard_path = "questions/hard.txt"
+        orig_hard = open(hard_path, encoding="utf-8").read() if os.path.exists(hard_path) else None
+        with open(hard_path, "w", encoding="utf-8") as f:
             f.write(FIXTURE_CONTENT)
         scores_path = os.path.join(REPO_PATH, "scores.txt")
         if os.path.exists(scores_path):
@@ -351,7 +366,11 @@ class Test3QuizRun(ExamTestCase):
         with open(scores_path, encoding="utf-8") as f:
             content = f.read()
         self.assertIn("hard", content)
-        os.remove("questions/hard.txt")
+        if orig_hard is not None:
+            with open(hard_path, "w", encoding="utf-8") as f:
+                f.write(orig_hard)
+        else:
+            os.remove(hard_path)
 
 
 if __name__ == "__main__":

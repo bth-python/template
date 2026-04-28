@@ -101,21 +101,30 @@ class TestKrav6Random(ExamTestCase):
     def setUpClass(cls):
         os.chdir(REPO_PATH)
         os.makedirs("questions", exist_ok=True)
+        cls._orig_questions = {}
         for filename, content in (
             ("easy.txt", FIXTURE_EASY),
             ("medium.txt", FIXTURE_MEDIUM),
             ("hard.txt", FIXTURE_HARD),
         ):
-            with open(f"questions/{filename}", "w", encoding="utf-8") as f:
+            path = f"questions/{filename}"
+            cls._orig_questions[filename] = open(path, encoding="utf-8").read() if os.path.exists(path) else None
+            with open(path, "w", encoding="utf-8") as f:
                 f.write(content)
 
     @classmethod
     def tearDownClass(cls):
         for filename in ("easy.txt", "medium.txt", "hard.txt"):
-            try:
-                os.remove(f"questions/{filename}")
-            except FileNotFoundError:
-                pass
+            path = f"questions/{filename}"
+            orig = cls._orig_questions.get(filename)
+            if orig is not None:
+                with open(path, "w", encoding="utf-8") as f:
+                    f.write(orig)
+            else:
+                try:
+                    os.remove(path)
+                except FileNotFoundError:
+                    pass
         try:
             os.remove("scores.txt")
         except FileNotFoundError:

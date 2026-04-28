@@ -5,7 +5,7 @@ version: '3'
 silent: true
 
 vars:
-  COURSE_NAME: algo
+  COURSE_NAME: python
   ORG_NAME: bth-{{ .COURSE_NAME }}
   ARTIFACT_REPO_FILES: https://raw.githubusercontent.com/{{.ORG_NAME}}/template/refs/heads/main/
   ARTIFACT_TMP_FILES: /tmp/tmp-artifacts
@@ -16,9 +16,11 @@ tasks:
   create-src-dirs:
     desc: "Creates the src directory structure if they do not exist"
     cmds:
-      - mkdir -p src/kmom01/{convert,lab_01,practice,split_bill} src/kmom02/{marvin1,practice,practice_validation} src/kmom03/{marvin2,practice,practice_validation} src/kmom04/{marvin3,practice,practice_validation,lab_04} src/kmom05/{emissions,practice,practice_validation}
+      - mkdir -p src/kmom01/{convert,lab_01,practice,split_bill} src/kmom02/{marvin1,practice,practice_validation} src/kmom03/{marvin2,practice,practice_validation} src/kmom04/{marvin3,practice,practice_validation,lab_04} src/kmom05/{leaderboard,practice,practice_validation} src/kmom06/{analyzer,practice,practice_validation} src/kmom10/quiz
       - echo "Source directories created successfully. PS empty directories are not shown with 'git status'."
       - tree -d src
+
+
 
   download-artifacts:
     desc: "Downloads the artifacts repo to /tmp/tmp-artifacts"
@@ -88,6 +90,7 @@ tasks:
       - mkdir -p .github/workflows
       - cp -a {{.ARTIFACT_TMP_FILES}}/.github/workflows/. .github/workflows/
       - echo "Workflow file downloaded successfully."
+
 
 
   download-extensions:
@@ -206,9 +209,45 @@ tasks:
 
 
 
+  download-all:
+    desc: "Download all files available config files"
+    cmds:
+      - task: download-artifacts
+      - task: download-tests
+      - task: download-ruff-config
+      - task: download-taskfile
+      - task: download-workflow
+      - task: download-extensions
+      - task: download-hooks
+      - task: clear-artifacts
+
   # ==========================================
   # Submission Commands
   # ==========================================
+
+  test:
+    desc: "Run tests for a given kmom from any directory. Usage: 'task test -- kmom04'"
+    cmds:
+      - |
+        if [ -z "{{.CLI_ARGS}}" ]; then
+          echo "❌ No assignment specified."
+          echo ""
+          echo "  Usage:   task test -- <kmom>"
+          echo "  Example: task test -- kmom04"
+          exit 1
+        fi
+
+        KMOM="{{.CLI_ARGS}}"
+        GIT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
+        if [ -z "$GIT_ROOT" ]; then
+          echo "❌ Not inside a git repository."
+          exit 1
+        fi
+
+        cd "$GIT_ROOT"
+        uv run tester tests/$KMOM
+
+
 
   check-ready:
     desc: "Check if assignment is ready for submission. Usage: 'task check-ready -- kmom01'"

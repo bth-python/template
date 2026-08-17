@@ -1,4 +1,4 @@
-P# Kursrepo för kursen python
+# Kursrepo för kursen python
 
 Välkommen till mitt kursrepo för python-kursen!
 
@@ -6,8 +6,6 @@ Välkommen till mitt kursrepo för python-kursen!
 ## Om mig
 
 _Frivilligt_
-
-Testar README.
 
 Skriv gärna ett kort stycke om dig själv (eller om ditt påhittade student-alter ego), inkludera en relevant bild (bara så du lär dig att hantera bilder i Markdown).
 

@@ -3,6 +3,9 @@ name: Pull Request was closed on bth/submit/*
 on:
   pull_request:
     types: [closed] # skapar PR, gör push, stänger manuellt
+    branches:
+        - 'bth/submit/*'
+        - '!bth/submit/test-gitconfig'
 
 jobs:
   debug:

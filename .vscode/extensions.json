@@ -12,6 +12,8 @@
     ],
     "unwantedRecommendations": [
         "github.copilot",
+        "github.copilot-chat",
+        "google.geminicodeassist",
         "ms-azuretools.vscode-azure-github-copilot",
         "github.copilot-chat",
         "blackboxapp.blackbox",
@@ -24,5 +26,7 @@
         "openai.chatgpt",
         "DanielSanMedium.dscodegpt",
         "Codeium.codeium",
+        "continue.continue",
+        "cline.cline"
     ]
 }

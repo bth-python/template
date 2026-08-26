@@ -60,6 +60,7 @@ tasks:
 
   download-taskfile:
     desc: "Downloads the Taskfile from the artifact repository"
+    run: always
     cmds:
       - curl -s -L -o Taskfile.yml {{.ARTIFACT_REPO_FILES}}/Taskfile.yml
       - echo "Taskfile downloaded successfully."

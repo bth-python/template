@@ -43,6 +43,7 @@ tasks:
     desc: "Replaces files in tests/ with files from the artifact repository, {{.ARTIFACT_REPO}}"
     cmds:
       - task: download-artifacts
+      - rm -rf tests
       - cp -a {{.ARTIFACT_TMP_FILES}}/tests/. tests
       - task: clear-artifacts
       - echo "Tests downloaded successfully."
@@ -307,14 +308,14 @@ tasks:
           echo "✅ No uncommitted changes."
         fi
 
-        # ── Check: submission tag v.YX.Z exists ────────────────────────────────
-        TAG=$(git tag --list "v.${KMOM_NUM}.*" | sort -V | tail -1)
+        # ── Check: submission tag vYX.Z exists ────────────────────────────────
+        TAG=$(git tag --list "v${KMOM_NUM}.*" | sort -V | tail -1)
         if [ -z "$TAG" ]; then
           echo "❌ No submission tag found matching 'v.${KMOM_NUM}.*'."
           echo ""
           echo "   Create and push a tag before submitting, e.g.:"
-          echo "   git tag v.${KMOM_NUM}.0"
-          echo "   git push origin v.${KMOM_NUM}.0"
+          echo "   git tag v${KMOM_NUM}.0 -m 'Ready with kmom01'"
+          echo "   git push --tags"
           ERRORS=$((ERRORS + 1))
         else
           echo "✅ Submission tag found: $TAG"

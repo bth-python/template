@@ -359,13 +359,13 @@ tasks:
     desc: "Initial setup - run all configuration downloads"
     cmds:
       - echo "Running initial setup..."
+      - task: download-taskfile
       - task: create-src-dirs
       - task: download-tests
       - task: download-ruff-config
       - task: download-workflow
       - task: download-extensions
       - task: download-hooks
-      - task: download-taskfile
       - task: check-repo-setup
       - echo ""
       - echo "✅ Setup complete!"

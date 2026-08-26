@@ -365,6 +365,7 @@ tasks:
       - task: download-workflow
       - task: download-extensions
       - task: download-hooks
+      - task: download-taskfile
       - task: check-repo-setup
       - echo ""
       - echo "✅ Setup complete!"

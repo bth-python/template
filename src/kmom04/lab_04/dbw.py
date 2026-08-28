@@ -96,10 +96,11 @@ class DBW:
     def format_value(arg):
         if isinstance(arg, list):
             return f"[{', '.join(map(str, arg))}]"
-        elif isinstance(arg, str):
+
+        if isinstance(arg, str):
             return f'"{arg}"'
-        else:
-            return str(arg)
+        
+        return str(arg)
 
     @staticmethod
     def args_as_string(args):
@@ -130,14 +131,17 @@ class DBW:
         def format_point(i, pass_):
             if pass_:
                 return " ⦿ "
-            elif i + 1 == DBW.PASS:
+
+            if i + 1 == DBW.PASS:
                 return " 😁 "
-            elif i + 1 == DBW.PASS_W_HONOUR:
+
+            if i + 1 == DBW.PASS_W_HONOUR:
                 return " 😍 "
-            elif i + 1 == DBW.PASS_TOTAL:
+
+            if i + 1 == DBW.PASS_TOTAL:
                 return " 🙌 "
-            else:
-                return " ⦾ "
+            
+            return " ⦾ "
 
         point_str = "".join(format_point(i, p) for i, p in enumerate(point_array))
 

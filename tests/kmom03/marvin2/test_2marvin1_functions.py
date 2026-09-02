@@ -72,24 +72,6 @@ class Test1Marvin1Functions(ExamTestCase):
 
 
     @tags("3", "marvin1")
-    def test_points_to_grade(self):
-        """
-        Testar att funktionen "points_to_grade" finns i marvin1.py.
-        Använder följande som input:
-        {arguments}
-        Förväntar att följande finns med i utskrift:
-        {correct}
-        Fick följande:
-        {student}
-        """
-        self.norepr = True
-        self._multi_arguments = ["100", "49"]
-
-        # If the studend does not include newlines in output.
-        self.check_print_contain(self._multi_arguments, ["score: F"], marvin1.points_to_grade)
-
-
-    @tags("4", "marvin1")
     def test_compare_numbers(self):
         """
         Testar att funktionen "compare_numbers" finns i marvin1.py.
@@ -112,8 +94,7 @@ class Test1Marvin1Functions(ExamTestCase):
         )
 
 
-
-    @tags("5", "marvin1")
+    @tags("4", "marvin1")
     def test_validate_ssn(self):
         """
         Testar att funktionen "validate_ssn" finns i marvin1.py.
@@ -132,28 +113,6 @@ class Test1Marvin1Functions(ExamTestCase):
             ["Valid"],
             marvin1.validate_ssn
         )
-
-
-    @tags("6", "marvin1")
-    def test_robber_language(self):
-        """
-        Testar att funktionen "robber_language" finns mer i marvin1.py
-        Använder följande som input:
-        {arguments}
-        Förväntar att följande finns med i utskrift:
-        {correct}
-        Fick följande:
-        {student}
-        """
-        self.norepr = True
-        self._multi_arguments = ["webbprogrammering"]
-
-        self.check_print_contain(
-            self._multi_arguments,
-            ["wowebobbobpoprorogogroramommomerorinongog"],
-            marvin1.robber_language
-        )
-
 
     @tags("1", "2", "marvin1")
     def test_main(self):

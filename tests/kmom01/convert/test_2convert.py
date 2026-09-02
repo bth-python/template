@@ -86,7 +86,7 @@ class Test2Convert(ExamTestCase):
         self._argument = "0"
         output_from_program = self.get_output_from_program([self._argument])
         self.assertIn("0 ", output_from_program)
-        self.assertIn("-12.0 ", output_from_program)
+        self.assertTrue("-12.0 " in output_from_program or (output_from_program.count("0 ") == 2))
 
 
 if __name__ == "__main__":

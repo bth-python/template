@@ -3,7 +3,7 @@ line-length = 120
 indent-width = 4
 
 
-extend-exclude = ["practice", "tests"]
+extend-exclude = ["practice", "tests", "dbw.py"]
 
 
 [lint]

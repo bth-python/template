@@ -205,9 +205,9 @@ class TestKrav6Random(ExamTestCase):
         output = self.run_program(self._multi_arguments)
         # Each unique question text should appear exactly once
         for q_text in [
-            "Vad är Sveriges huvudstad?",
-            "Vilket år bildades Kungariket Sverige officiellt?",
-            "Vilket grundämne har kemiskt tecken O?",
+            "Geografi\nVad är Sveriges huvudstad?",
+            "Historia\nVilket år bildades Kungariket Sverige officiellt?",
+            "Vetenskap\nVilket grundämne har kemiskt tecken O?",
         ]:
             self.assertIn(q_text, output)
             # Verify it only appears once by checking the text after removing the first occurrence
